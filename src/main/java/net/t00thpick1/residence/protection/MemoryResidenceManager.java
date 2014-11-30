@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import net.t00thpick1.residence.api.ResidenceManager;
+import net.t00thpick1.residence.api.areas.CuboidArea;
 import net.t00thpick1.residence.api.areas.ResidenceArea;
 import net.t00thpick1.residence.utils.immutable.ImmutableWrapperCollection;
 
@@ -39,6 +40,9 @@ public abstract class MemoryResidenceManager implements ResidenceManager {
         boolean found = false;
         String world = loc.getWorld().getName();
         ChunkRef chunk = new ChunkRef(loc);
+        if (residenceNamesByChunk.get(world) == null) {
+            residenceNamesByChunk.put(world, new HashMap<ChunkRef, List<String>>());
+        }
         if (residenceNamesByChunk.get(world).get(chunk) != null) {
             for (String key : residenceNamesByChunk.get(world).get(chunk)) {
                 ResidenceArea entry = residencesByWorld.get(world).get(key);
@@ -90,6 +94,27 @@ public abstract class MemoryResidenceManager implements ResidenceManager {
     @Override
     public Collection<ResidenceArea> getResidencesInWorld(World world) {
         return new ImmutableWrapperCollection<ResidenceArea>(residencesByWorld.get(world.getName()).values());
+    }
+
+    @Override
+    public ResidenceArea getCollision(CuboidArea area) {
+        List<ChunkRef> chunks = ((MemoryCuboidArea) area).getChunks();
+        Map<ChunkRef, List<String>> residences = residenceNamesByChunk.get(area.getWorld().getName());
+        if (residences == null) {
+            return null;
+        }
+        for (ChunkRef chunk : chunks) {
+            List<String> posCollisions = residences.get(chunk);
+            if (posCollisions != null) {
+                for (String key : posCollisions) {
+                    ResidenceArea collision = getByName(key);
+                    if (collision.checkCollision(area)) {
+                        return collision;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public void removeChunkList(ResidenceArea res) {

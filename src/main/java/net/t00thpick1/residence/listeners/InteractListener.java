@@ -39,10 +39,11 @@ public class InteractListener implements Listener {
         }
         if (player.getItemInHand().getType() == ConfigManager.getInstance().getSelectionToolType()) {
             select(player, block, event);
-            return;
         }
         if (player.getItemInHand().getType() == ConfigManager.getInstance().getInfoToolType()) {
             info(player, block, event);
+        }
+        if (event.isCancelled()) {
             return;
         }
         interact(player, block, event);
@@ -156,14 +157,8 @@ public class InteractListener implements Listener {
         if (event.getAction() != Action.PHYSICAL) {
             return;
         }
-        if (Utilities.isAdminMode(player)) {
-            return;
-        }
         Material mat = block.getType();
         if (mat == Material.SOIL || mat == Material.SOUL_SAND) {
-            if (Utilities.isAdminMode(player)) {
-                return;
-            }
             if (!ResidenceAPI.getPermissionsAreaByLocation(block.getLocation()).allowAction(player.getName(), FlagManager.TRAMPLE)) {
                 event.setCancelled(true);
                 return;
@@ -174,9 +169,11 @@ public class InteractListener implements Listener {
                 && block.getType() != Material.GOLD_PLATE && block.getType() != Material.IRON_PLATE) {
             return;
         }
+        if (Utilities.isAdminMode(player)) {
+            return;
+        }
         if (!ResidenceAPI.getPermissionsAreaByLocation(block.getLocation()).allowAction(player.getName(), FlagManager.PRESSUREPLATE)) {
             event.setCancelled(true);
-            player.sendMessage(LocaleLoader.getString("Flags.Messages.FlagDeny", LocaleLoader.getString("Flags.Messages.UseFlagDeny", FlagManager.PRESSUREPLATE.getName())));
         }
     }
 
